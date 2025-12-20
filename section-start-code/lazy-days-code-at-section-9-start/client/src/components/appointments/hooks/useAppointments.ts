@@ -57,12 +57,15 @@ export function useAppointments() {
   //   appointments that the logged-in user has reserved (in white)
   const { userId } = useLoginData();
 
+  // use global showAll in the memoized selectFn so there's no need for an anonymous fn in the
+  //   useQuery call
+  // see https://www.udemy.com/course/learn-react-query/learn/#questions/23969569/ for details
   const selectFn = useCallback(
-    (data: AppointmentDateMap, showAll: boolean) => {
+    (data: AppointmentDateMap) => {
       if (showAll) return data;
       return getAvailableAppointments(data, userId);
     },
-    [userId]
+    [userId, showAll]
   );
 
   /** ****************** END 2: filter appointments  ******************** */
@@ -96,7 +99,7 @@ export function useAppointments() {
   const { data: appointments = fallback } = useQuery({
     queryKey: [queryKeys.appointments, monthYear.year, monthYear.month],
     queryFn: () => getAppointments(monthYear.year, monthYear.month),
-    select: (data) => selectFn(data, showAll),
+    select: selectFn,
     refetchOnWindowFocus: true,
     refetchInterval: 60000, // every minute
     ...commonOptions,

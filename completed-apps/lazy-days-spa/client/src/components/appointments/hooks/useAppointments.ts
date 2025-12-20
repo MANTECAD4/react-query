@@ -93,10 +93,17 @@ export function useAppointments() {
   //       monthYear.month
   const fallback: AppointmentDateMap = {};
 
+  // memoize the select function using useCallback
+  // see https://www.udemy.com/course/learn-react-query/learn/#questions/23969569/ for details
+  const memoizedSelectFn = useCallback(
+    (data: AppointmentDateMap) => selectFn(data, showAll),
+    [selectFn, showAll]
+  );
+
   const { data: appointments = fallback } = useQuery({
     queryKey: [queryKeys.appointments, monthYear.year, monthYear.month],
     queryFn: () => getAppointments(monthYear.year, monthYear.month),
-    select: (data) => selectFn(data, showAll),
+    select: memoizedSelectFn,
     refetchOnWindowFocus: true,
     refetchInterval: 60000, // every minute
     ...commonOptions,
